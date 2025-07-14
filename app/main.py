@@ -27,23 +27,23 @@ def brute_force_password(start, end) -> None:
 
 def main_multiprocessing():
     tasks = []
-    n = 99999999
-    mod = (os.cpu_count() - 1)
-    segment = (n + (mod - (n % mod)) % mod) // mod
-    for index, start, end in ((segment * i, segment * (i + 1)) for i in range(mod)):
-        tasks.append(
-            multiprocessing.Process(
-                target=brute_force_password,
-                args=(
-                    start,
-                    end
-                )
-            )
+    n = 100_000_000  # до 99999999 включительно
+    num_procs = os.cpu_count() or 1  # всегда хотя бы 1
+    segment = n // num_procs
+
+    for i in range(num_procs):
+        start = i * segment
+        end = (i + 1) * segment if i != num_procs - 1 else n  # последний добирает остаток
+        task = multiprocessing.Process(
+            target=brute_force_password,
+            args=(start, end)
         )
-        tasks[-1].start()
+        tasks.append(task)
+        task.start()
 
     for task in tasks:
         task.join()
+
 
 if __name__ == "__main__":
     start_time = time.perf_counter()
