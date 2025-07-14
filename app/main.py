@@ -16,27 +16,25 @@ PASSWORDS_TO_BRUTE_FORCE = [
     "e5f3ff26aa8075ce7513552a9af1882b4fbc2a47a3525000f6eb887ab9622207",
 ]
 
-
 def sha256_hash_str(to_hash: str) -> str:
     return sha256(to_hash.encode("utf-8")).hexdigest()
 
-
-def brute_force_password(index, start, end) -> None:
-    print(f"#{index}bruteforce {start, end}")
+def brute_force_password(start, end) -> None:
     for i in range(start, end):
         s = f"{i:08d}"
         if sha256_hash_str(s) in PASSWORDS_TO_BRUTE_FORCE:
-            print(s, sha256_hash_str(s))
+            print(f"password: {s}, hash: {sha256_hash_str(s)}")
 
 def main_multiprocessing():
     tasks = []
-    segment = 99999999 // (os.cpu_count() - 1)
-    for index, start, end in ((i, segment * i, segment * (i + 1)) for i in range(os.cpu_count() - 1)):
+    n = 99999999
+    mod = (os.cpu_count() - 1)
+    segment = (n + (mod - (n % mod)) % mod) // mod
+    for index, start, end in ((segment * i, segment * (i + 1)) for i in range(mod)):
         tasks.append(
             multiprocessing.Process(
                 target=brute_force_password,
                 args=(
-                    index,
                     start,
                     end
                 )
